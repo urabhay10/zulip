@@ -351,6 +351,21 @@ class NarrowBuilderTest(ZulipTestCase):
             self._build_query(channels_term)
         self.assertEqual(expected_error_message, str(error.exception))
 
+    def test_combined_channel_with_negated_dm(self)-> None:
+        dm_term = NarrowParameter(operator="dm",operand=self.othello_email,negated=True)
+        self._build_query(dm_term)
+
+        channel_term = NarrowParameter(operator="channels",operand="public")
+        self._build_query(channel_term)
+
+    def test_combined_negated_channel_with_dm(self)-> None:
+        dm_term = NarrowParameter(operator="dm",operand=self.othello_email)
+        self._build_query(dm_term)
+
+        channel_term = NarrowParameter(operator="channels",operand="public",negated=True)
+        self._build_query(channel_term)
+
+
     def test_add_term_using_dm_operator_not_the_same_user_as_operand_and_negated(
         self,
     ) -> None:  # NEGATED
