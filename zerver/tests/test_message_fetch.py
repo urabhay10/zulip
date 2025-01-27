@@ -704,6 +704,7 @@ class NarrowBuilderTest(ZulipTestCase):
 
     def test_add_term_using_stream_operator_and_non_existing_operand_should_raise_error(
         self,
+        
     ) -> None:  # NEGATED
         term = NarrowParameter(operator="stream", operand="non-existing-channel")
         self.assertRaises(BadNarrowOperatorError, self._build_query, term)

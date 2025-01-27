@@ -264,6 +264,7 @@ class NarrowBuilder:
         msg_id_column: ColumnElement[Integer],
         realm: Realm,
         is_web_public_query: bool = False,
+        
     ) -> None:
         self.user_profile = user_profile
         self.msg_id_column = msg_id_column
