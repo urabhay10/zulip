@@ -51,7 +51,11 @@ from zerver.actions.invites import (
     do_revoke_user_invite,
 )
 from zerver.actions.message_delete import do_delete_messages
-from zerver.actions.message_edit import do_update_embedded_data, do_update_message
+from zerver.actions.message_edit import (
+    build_message_edit_request,
+    do_update_embedded_data,
+    do_update_message,
+)
 from zerver.actions.message_flags import do_update_message_flags
 from zerver.actions.muted_users import do_mute_user, do_unmute_user
 from zerver.actions.onboarding_steps import do_mark_onboarding_step_as_read
@@ -602,16 +606,21 @@ class NormalActionsTest(BaseAction):
             message_sender=self.example_user("cordelia"),
         )
 
+        message_edit_request = build_message_edit_request(
+            message=pm,
+            user_profile=self.user_profile,
+            propagate_mode="change_one",
+            stream_id=None,
+            topic_name=None,
+            content=content,
+        )
         with self.verify_action(state_change_expected=False) as events:
             do_update_message(
                 self.user_profile,
                 pm,
-                None,
-                None,
-                None,
+                message_edit_request,
                 False,
                 False,
-                content,
                 rendering_result,
                 prior_mention_user_ids,
                 mention_data,
@@ -906,16 +915,21 @@ class NormalActionsTest(BaseAction):
             message_sender=iago,
         )
 
+        message_edit_request = build_message_edit_request(
+            message=message,
+            user_profile=self.user_profile,
+            propagate_mode="change_one",
+            stream_id=None,
+            topic_name=None,
+            content=content,
+        )
         with self.verify_action(state_change_expected=False) as events:
             do_update_message(
                 self.user_profile,
                 message,
-                None,
-                None,
-                None,
+                message_edit_request,
                 False,
                 False,
-                content,
                 rendering_result,
                 prior_mention_user_ids,
                 mention_data,
@@ -934,16 +948,22 @@ class NormalActionsTest(BaseAction):
         topic_name = "new_topic"
         propagate_mode = "change_all"
 
+        message_edit_request = build_message_edit_request(
+            message=message,
+            user_profile=self.user_profile,
+            propagate_mode=propagate_mode,
+            stream_id=None,
+            topic_name=topic_name,
+            content=None,
+        )
+
         with self.verify_action(state_change_expected=True) as events:
             do_update_message(
                 self.user_profile,
                 message,
-                None,
-                topic_name,
-                propagate_mode,
+                message_edit_request,
                 False,
                 False,
-                None,
                 None,
                 prior_mention_user_ids,
                 mention_data,
@@ -983,6 +1003,14 @@ class NormalActionsTest(BaseAction):
         propagate_mode = "change_all"
         prior_mention_user_ids = set()
 
+        message_edit_request = build_message_edit_request(
+            message=message,
+            user_profile=self.user_profile,
+            propagate_mode=propagate_mode,
+            stream_id=stream.id,
+            topic_name=None,
+            content=None,
+        )
         with self.verify_action(
             state_change_expected=True,
             # There are 3 events generated for this action
@@ -993,12 +1021,9 @@ class NormalActionsTest(BaseAction):
             do_update_message(
                 self.user_profile,
                 message,
-                stream,
-                None,
-                propagate_mode,
+                message_edit_request,
                 True,
                 True,
-                None,
                 None,
                 set(),
                 None,
@@ -1022,6 +1047,14 @@ class NormalActionsTest(BaseAction):
         propagate_mode = "change_all"
         prior_mention_user_ids = set()
 
+        message_edit_request = build_message_edit_request(
+            message=message,
+            user_profile=self.user_profile,
+            propagate_mode="change_one",
+            stream_id=stream.id,
+            topic_name="final_topic",
+            content=None,
+        )
         with self.verify_action(
             state_change_expected=True,
             # Skip "update_message_flags" to exercise the code path
@@ -1035,12 +1068,9 @@ class NormalActionsTest(BaseAction):
             do_update_message(
                 self.user_profile,
                 message,
-                stream,
-                "final_topic",
-                propagate_mode,
+                message_edit_request,
                 True,
                 True,
-                None,
                 None,
                 set(),
                 None,
@@ -3384,7 +3414,6 @@ class NormalActionsTest(BaseAction):
             with self.verify_action(include_streams=include_streams) as events:
                 do_deactivate_stream(stream, acting_user=None)
             check_stream_delete("events[0]", events[0])
-            self.assertIsNone(events[0]["streams"][0]["stream_weekly_traffic"])
 
     def test_admin_deactivate_unsubscribed_stream(self) -> None:
         self.set_up_db_for_testing_user_access()
@@ -3770,21 +3799,20 @@ class RealmPropertyActionTest(BaseAction):
             message_retention_days=[10, 20],
             name=["Zulip", "New Name"],
             waiting_period_threshold=[1000, 2000],
-            invite_to_stream_policy=Realm.COMMON_POLICY_TYPES,
             wildcard_mention_policy=Realm.WILDCARD_MENTION_POLICY_TYPES,
             bot_creation_policy=Realm.BOT_CREATION_POLICY_TYPES,
             video_chat_provider=[
                 Realm.VIDEO_CHAT_PROVIDERS["jitsi_meet"]["id"],
             ],
-            jitsi_server_url=["https://jitsi1.example.com", "https://jitsi2.example.com"],
+            jitsi_server_url=["https://jitsi1.example.com", "https://jitsi2.example.com", None],
             giphy_rating=[
                 Realm.GIPHY_RATING_OPTIONS["disabled"]["id"],
             ],
             default_code_block_language=["python", "javascript"],
-            message_content_delete_limit_seconds=[1000, 1100, 1200],
+            message_content_delete_limit_seconds=[1000, 1100, 1200, None],
             message_content_edit_limit_seconds=[1000, 1100, 1200, None],
-            move_messages_within_stream_limit_seconds=[1000, 1100, 1200],
-            move_messages_between_streams_limit_seconds=[1000, 1100, 1200],
+            move_messages_within_stream_limit_seconds=[1000, 1100, 1200, None],
+            move_messages_between_streams_limit_seconds=[1000, 1100, 1200, None],
         )
 
         vals = test_values.get(name)

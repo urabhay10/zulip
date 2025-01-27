@@ -262,6 +262,7 @@ export function show_settings_for(node: HTMLElement): void {
         is_admin: current_user.is_admin,
         org_level_message_retention_setting: get_display_text_for_realm_message_retention_setting(),
         can_access_stream_email: stream_data.can_access_stream_email(sub),
+        group_setting_labels: settings_config.group_setting_labels.stream,
     });
     scroll_util.get_content_element($("#stream_settings")).html(html);
 
@@ -279,6 +280,7 @@ export function show_settings_for(node: HTMLElement): void {
     settings_org.set_message_retention_setting_dropdown(sub);
     stream_ui_updates.enable_or_disable_permission_settings_in_edit_panel(sub);
     setup_group_setting_widgets(slim_sub);
+    stream_ui_updates.update_can_add_subscribers_group_label($edit_container);
 
     $("#channels_overlay_container").on(
         "click",
@@ -721,6 +723,11 @@ export function initialize(): void {
             return true;
         },
     );
+
+    // This takes care of both stream create and edit.
+    $("#channels_overlay_container").on("change", ".stream-privacy-values input", () => {
+        stream_ui_updates.update_can_add_subscribers_group_label($("#channels_overlay_container"));
+    });
 
     $("#channels_overlay_container").on(
         "click",

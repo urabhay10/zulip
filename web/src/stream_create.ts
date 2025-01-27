@@ -70,6 +70,7 @@ export function maybe_update_error_message(): void {
 }
 
 const group_setting_widget_map = new Map<string, GroupSettingPillContainer | null>([
+    ["can_add_subscribers_group", null],
     ["can_administer_channel_group", null],
     ["can_remove_subscribers_group", null],
     ["can_send_message_group", null],
@@ -507,19 +508,11 @@ export function show_new_stream_modal(): void {
             );
         }
     }
-    const $add_subscribers_container = $(
-        "#stream_creation_form .subscriber_list_settings",
-    ).expectOne();
-
-    stream_ui_updates.enable_or_disable_add_subscribers_elements(
-        $add_subscribers_container,
-        settings_data.user_can_subscribe_other_users(),
-        true,
-    );
 
     // set default state for "announce stream" and "default stream" option.
     $("#stream_creation_form .default-stream input").prop("checked", false);
     update_announce_stream_state();
+    stream_ui_updates.update_can_add_subscribers_group_label($("#stream-creation"));
     stream_ui_updates.update_default_stream_and_stream_privacy_state($("#stream-creation"));
     clear_error_display();
 }
@@ -550,6 +543,10 @@ export function set_up_handlers(): void {
     $container.on("change", ".stream-privacy-values input", () => {
         update_announce_stream_state();
         stream_ui_updates.update_default_stream_and_stream_privacy_state($container);
+        // We update the label on `can_add_subscribers_groups` in the
+        // listener attached to `.stream-privacy-values input` on
+        // `#channels_overlay_container` which covers both stream
+        // create and edit scenarios.
     });
 
     $container.on("change", ".default-stream input", () => {
