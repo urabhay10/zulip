@@ -305,7 +305,7 @@ class NarrowBuilder:
         self, maybe_negate:ConditionTransform, is_dm_narrow: bool = False, is_channel_narrow: bool = False
     ) -> None:
         if is_dm_narrow and maybe_negate is not not_:
-            self.is_dm_narrow = True 
+            self.is_dm_narrow = True
         if is_channel_narrow and maybe_negate is not not_:
             self.is_channel_narrow = True
         if self.is_channel_narrow and self.is_dm_narrow:
