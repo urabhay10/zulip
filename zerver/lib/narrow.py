@@ -390,8 +390,7 @@ class NarrowBuilder:
 
         if operand in ["dm", "private"]:
             # "is:private" is a legacy alias for "is:dm"
-            if maybe_negate is not not_:
-                self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
+            self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
             cond = column("flags", Integer).op("&")(UserMessage.flags.is_private.mask) != 0
             return query.where(maybe_negate(cond))
         elif operand == "starred":
@@ -444,8 +443,7 @@ class NarrowBuilder:
     def by_channel(
         self, query: Select, operand: str | int, maybe_negate: ConditionTransform
     ) -> Select:
-        if maybe_negate is not not_:
-            self.check_not_both_channel_and_dm_narrow(is_channel_narrow=True)
+        self.check_not_both_channel_and_dm_narrow(is_channel_narrow=True)
 
         try:
             # Because you can see your own message history for
@@ -490,8 +488,7 @@ class NarrowBuilder:
         return query.where(maybe_negate(cond))
 
     def by_channels(self, query: Select, operand: str, maybe_negate: ConditionTransform) -> Select:
-        if maybe_negate is not not_:
-            self.check_not_both_channel_and_dm_narrow(is_channel_narrow=True)
+        self.check_not_both_channel_and_dm_narrow(is_channel_narrow=True)
 
         if operand == "public":
             # Get all both subscribed and non-subscribed public channels
@@ -507,8 +504,7 @@ class NarrowBuilder:
         return query.where(maybe_negate(cond))
 
     def by_topic(self, query: Select, operand: str, maybe_negate: ConditionTransform) -> Select:
-        if maybe_negate is not not_:
-            self.check_not_both_channel_and_dm_narrow(is_channel_narrow=True)
+        self.check_not_both_channel_and_dm_narrow(is_channel_narrow=True)
 
         if self.realm.is_zephyr_mirror_realm:
             # MIT users expect narrowing to topic "foo" to also show messages to /^foo(.d)*$/
@@ -584,8 +580,7 @@ class NarrowBuilder:
         assert not self.is_web_public_query
         assert self.user_profile is not None
 
-        if maybe_negate is not not_:
-            self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
+        self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
 
         try:
             if isinstance(operand, str):
@@ -692,8 +687,8 @@ class NarrowBuilder:
         # This operator does not support is_web_public_query.
         assert not self.is_web_public_query
         assert self.user_profile is not None
-        if maybe_negate is not not_:
-            self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
+
+        self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
 
         try:
             if isinstance(operand, str):
@@ -746,8 +741,7 @@ class NarrowBuilder:
         assert not self.is_web_public_query
         assert self.user_profile is not None
 
-        if maybe_negate is not not_:
-            self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
+        self.check_not_both_channel_and_dm_narrow(is_dm_narrow=True)
 
         try:
             if isinstance(operand, str):
